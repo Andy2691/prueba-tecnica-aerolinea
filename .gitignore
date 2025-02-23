@@ -1,0 +1,25 @@
+# Ignorar el entorno virtual si está dentro del proyecto
+venv/
+Entorno Virtual/
+
+# Ignorar archivos compilados de Python
+*.pyc
+__pycache__/
+
+# Ignorar configuración de entornos locales
+.env
+
+# Base de datos SQLite (si la usas para desarrollo)
+db.sqlite3
+
+# Archivos de logs y caché de Django
+*.log
+*.pot
+*.mo
+
+# Ignorar configuraciones de Docker (si no quieres subirlas)
+*.dockerfile
+
+# Ignorar archivos de VS Code, PyCharm y otros editores
+.vscode/
+.idea/
