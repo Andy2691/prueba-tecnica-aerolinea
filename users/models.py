@@ -1,20 +1,16 @@
-from django.contrib.auth.models import AbstractUser, Group, Permission
+from django.contrib.auth.models import AbstractUser
 from django.db import models
 
 
 class CustomUser(AbstractUser):
     email = models.EmailField(unique=True)
 
-    groups = models.ManyToManyField(
-        Group,
-        related_name="customuser_set",  # 🔧 Se cambia el related_name para evitar conflictos
-        blank=True,
-    )
+    # 🔹 Eliminamos los campos `groups` y `user_permissions` porque ya existen en `AbstractUser`
 
-    user_permissions = models.ManyToManyField(
-        Permission,
-        related_name="customuser_permissions_set",  # 🔧 Se cambia el related_name
-        blank=True,
-    )
+    REQUIRED_FIELDS = [
+        "first_name",
+        "last_name",
+    ]  # 🔹 Pedimos nombre y apellido en lugar de email
 
-    REQUIRED_FIELDS = ["email"]
+    def __str__(self):
+        return self.username  # 🔹 Muestra el username en el admin de Django
