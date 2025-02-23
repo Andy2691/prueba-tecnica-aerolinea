@@ -22,7 +22,7 @@
       <div class="alert alert-danger">
         <ul>
           {% for field in form %} {% for error in field.errors %}
-          <li>{{ error }}</li>
+          <li>{{ field.label }}: {{ error }}</li>
           {% endfor %} {% endfor %}
         </ul>
       </div>
@@ -31,47 +31,61 @@
       <form method="POST">
         {% csrf_token %}
 
-        <input
-          type="text"
-          name="first_name"
-          placeholder="Nombre"
-          class="form-control"
-          required
-        />
+        <div class="mb-3">
+          <input
+            type="text"
+            name="first_name"
+            placeholder="Nombre"
+            class="form-control"
+            value="{{ request.POST.first_name|default_if_none:'' }}"
+            required
+          />
+        </div>
 
-        <input
-          type="text"
-          name="last_name"
-          placeholder="Apellido"
-          class="form-control"
-          required
-        />
+        <div class="mb-3">
+          <input
+            type="text"
+            name="last_name"
+            placeholder="Apellido"
+            class="form-control"
+            value="{{ request.POST.last_name|default_if_none:'' }}"
+            required
+          />
+        </div>
 
-        <input
-          type="text"
-          name="username"
-          placeholder="Usuario"
-          class="form-control"
-          required
-        />
+        <div class="mb-3">
+          <input
+            type="text"
+            name="username"
+            placeholder="Usuario"
+            class="form-control"
+            value="{{ request.POST.username|default_if_none:'' }}"
+            required
+          />
+        </div>
 
-        <input
-          type="email"
-          name="email"
-          placeholder="Email"
-          class="form-control"
-          required
-        />
+        <div class="mb-3">
+          <input
+            type="email"
+            name="email"
+            placeholder="Email"
+            class="form-control"
+            value="{{ request.POST.email|default_if_none:'' }}"
+            required
+          />
+        </div>
 
-        <input
-          type="password"
-          name="password"
-          placeholder="Contraseña"
-          class="form-control"
-          required
-        />
+        <div class="mb-3">
+          <input
+            type="password"
+            name="password"
+            placeholder="Contraseña"
+            class="form-control"
+            required
+          />
+        </div>
 
-        <button type="submit" class="btn btn-success mt-3">Registrarse</button>
+        <button type="submit" class="btn btn-success">Registrarse</button>
       </form>
 
       <p class="mt-3">

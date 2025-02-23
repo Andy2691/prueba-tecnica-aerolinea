@@ -17,23 +17,42 @@
       <div class="alert alert-{{ message.tags }}">{{ message }}</div>
       {% endfor %} {% endif %}
 
+      <!-- Mostrar errores específicos del formulario -->
+      {% if form.errors %}
+      <div class="alert alert-danger">
+        <ul>
+          {% for field in form %} {% for error in field.errors %}
+          <li>{{ field.label }}: {{ error }}</li>
+          {% endfor %} {% endfor %}
+        </ul>
+      </div>
+      {% endif %}
+
       <form method="POST" action="{% url 'user_login' %}">
         {% csrf_token %}
-        <input
-          type="text"
-          name="username"
-          placeholder="Usuario"
-          class="form-control"
-          required
-        />
-        <input
-          type="password"
-          name="password"
-          placeholder="Contraseña"
-          class="form-control mt-2"
-          required
-        />
-        <button type="submit" class="btn btn-primary mt-3">Ingresar</button>
+
+        <div class="mb-3">
+          <input
+            type="text"
+            name="username"
+            placeholder="Usuario"
+            class="form-control"
+            value="{{ request.POST.username|default_if_none:'' }}"
+            required
+          />
+        </div>
+
+        <div class="mb-3">
+          <input
+            type="password"
+            name="password"
+            placeholder="Contraseña"
+            class="form-control"
+            required
+          />
+        </div>
+
+        <button type="submit" class="btn btn-primary">Ingresar</button>
       </form>
 
       <p class="mt-3">
