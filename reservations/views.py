@@ -11,6 +11,27 @@ from rest_framework.authentication import SessionAuthentication
 from rest_framework.permissions import IsAuthenticated
 from .models import Reservation
 from flights.models import Flight
+from django.views.decorators.csrf import csrf_exempt
+from django.contrib.auth.hashers import make_password
+
+
+@login_required
+@csrf_exempt
+def update_profile(request):
+    if request.method == "POST":
+        user = request.user
+        user.first_name = request.POST.get("first_name")
+        user.last_name = request.POST.get("last_name")
+        user.email = request.POST.get("email")
+
+        new_password = request.POST.get("new_password")
+        if new_password:  # Si el usuario ingresó una nueva contraseña
+            user.password = make_password(new_password)
+
+        user.save()
+        return JsonResponse({"message": "Perfil actualizado con éxito"}, status=200)
+
+    return JsonResponse({"error": "Método no permitido"}, status=405)
 
 
 # 🔹 Página HTML para mostrar reservas y permitir cancelación
