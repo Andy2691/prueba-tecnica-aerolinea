@@ -15,27 +15,9 @@
       <!-- Mostrar mensajes -->
       {% if messages %} {% for message in messages %}
       <div class="alert alert-{{ message.tags }}">{{ message }}</div>
-      {% endfor %} {% endif %}
-
-      <!-- Formulario para crear una reserva -->
-      <form method="POST" action="{% url 'create_reservation' %}" class="mt-4">
-        {% csrf_token %}
-        <div class="mb-3">
-          <label for="flight" class="form-label">Selecciona un vuelo:</label>
-          <select name="flight" class="form-control" required>
-            {% for flight in flights %}
-            <option value="{{ flight.id }}">
-              {{ flight.origin }} → {{ flight.destination }} ({{ flight.date }})
-            </option>
-            {% endfor %}
-          </select>
-        </div>
-        <button type="submit" class="btn btn-success">Reservar Vuelo</button>
-      </form>
-
-      {% if reservations %}
+      {% endfor %} {% endif %} {% if reservations %}
       <table class="table table-bordered mt-3">
-        <thead>
+        <thead class="table-dark">
           <tr>
             <th>ID</th>
             <th>Vuelo</th>
@@ -45,22 +27,20 @@
         </thead>
         <tbody>
           {% for reservation in reservations %}
-          <tr id="reservation-{{ reservation.id }}">
-            <td>{{ reservation.id }}</td>
-            <td>
-              {{ reservation.flight.origin }} → {{
-              reservation.flight.destination }}
-            </td>
-            <td>{{ reservation.created_at }}</td>
-            <td>
-              <button
-                class="btn btn-danger btn-sm"
-                onclick="cancelReservation({{ reservation.id }})"
-              >
-                Cancelar
-              </button>
-            </td>
-          </tr>
+          <tr>
+            <tr id="reservation-{{ reservation.id }}">
+                <td>{{ reservation.id }}</td>
+                <td>{{ reservation.flight.origin }} → {{ reservation.flight.destination }}</td>
+                <td>{{ reservation.created_at }}</td>
+                <td>
+                  <button
+                    class="btn btn-danger btn-sm"
+                    onclick="cancelReservation({{ reservation.id }})"
+                  >
+                    Cancelar
+                  </button>
+                </td>
+              </tr>
           {% endfor %}
         </tbody>
       </table>
@@ -69,15 +49,13 @@
       {% endif %}
 
       <div class="text-center mt-4">
-        <a href="/" class="btn btn-secondary">Volver al inicio</a>
+        <a href="{% url 'flights_home' %}" class="btn btn-primary">Ver Vuelos</a>
       </div>
-    </div>
 
-    <!-- JavaScript para cancelar reservas sin recargar la página -->
+    <!-- JavaScript mejorado para cancelar reservas sin errores -->
     <script>
       function cancelReservation(reservationId) {
-        let token = "{{ access_token }}"; // 🔥 Access Token generado en Django
-        let csrfToken = "{{ csrf_token }}"; // 🔥 CSRF Token de Django
+        let csrfToken = "{{ csrf_token }}"; // CSRF Token de Django
 
         if (!confirm("¿Estás seguro de que deseas cancelar esta reserva?")) {
           return;
@@ -86,22 +64,28 @@
         fetch(`/reservations/api/cancel/${reservationId}/`, {
           method: "DELETE",
           headers: {
-            Authorization: `Bearer ${token}`,
             "X-CSRFToken": csrfToken,
             "Content-Type": "application/json",
           },
         })
           .then((response) => {
-            if (response.ok) {
+            if (!response.ok) {
+              throw new Error("Error en la cancelación: " + response.status);
+            }
+            return response.json();
+          })
+          .then((data) => {
+            if (data.message) {
               alert("Reserva cancelada correctamente.");
-              document.getElementById(`reservation-${reservationId}`).remove(); // 🔄 Elimina la fila sin recargar la página
+              let row = document.getElementById(`reservation-${reservationId}`);
+              if (row) row.remove(); // 🔄 Elimina la fila sin recargar la página
             } else {
-              return response.json().then((data) => {
-                throw new Error(data.detail || "Error desconocido");
-              });
+              throw new Error(data.error || "Error desconocido");
             }
           })
-          .catch((error) => alert("Error: " + error.message));
+          .catch((error) => {
+            alert("Error al cancelar la reserva: " + error.message);
+          });
       }
     </script>
   </body>
