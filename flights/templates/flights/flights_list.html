@@ -9,6 +9,22 @@
     <div class="container mt-5">
         <h1 class="text-center text-primary">Lista de Vuelos</h1>
 
+        <!-- 🔹 Barra de navegación -->
+        <div class="d-flex justify-content-between mb-4">
+            <a href="{% url 'home' %}" class="btn btn-secondary">🏠 Inicio</a>
+            
+            {% if user.is_authenticated %}
+                <a href="{% url 'reservations_home' %}" class="btn btn-success">📋 Mis Reservas</a>
+                <form id="logout-form" action="{% url 'user_logout' %}" method="POST" style="display:inline;">
+                  {% csrf_token %}
+                  <button type="submit" class="btn btn-danger">🚪 Cerrar Sesión</button>
+              </form>
+            {% else %}
+                <a href="{% url 'user_login' %}" class="btn btn-primary">🔑 Iniciar Sesión</a>
+                <a href="{% url 'register' %}" class="btn btn-info">📝 Registrarse</a>
+            {% endif %}
+        </div>
+
         <!-- 🔹 Formulario de búsqueda -->
         <form method="GET" class="mt-4 row g-2">
             <div class="col-md-3">
@@ -38,7 +54,7 @@
             </div>
 
             <div class="col-md-3 d-grid">
-                <button type="submit" class="btn btn-primary">Buscar</button>
+                <button type="submit" class="btn btn-primary">🔍 Buscar</button>
             </div>
         </form>
 
@@ -62,15 +78,15 @@
                     <td>{{ flight.date|date:"d M Y H:i" }}</td>
                     <td>{{ flight.available_seats }}</td>
                     <td class="text-center">
-                        {% if flight.available_seats > 0 %}
-                        <form method="POST" action="{% url 'create_reservation' %}">
-                            {% csrf_token %}
-                            <input type="hidden" name="flight" value="{{ flight.id }}">
-                            <button type="submit" class="btn btn-success btn-sm">Reservar</button>
-                        </form>
-                        {% else %}
-                        <span class="badge bg-danger">No disponible</span>
-                        {% endif %}
+                      {% if user.is_authenticated %}
+                      <form method="POST" action="{% url 'create_reservation' %}">
+                          {% csrf_token %}
+                          <input type="hidden" name="flight" value="{{ flight.id }}">
+                          <button type="submit" class="btn btn-success btn-sm">Reservar</button>
+                      </form>
+                      {% else %}
+                      <a href="{% url 'user_login' %}" class="btn btn-warning btn-sm">🔑 Inicia sesión para reservar</a>
+                      {% endif %}
                     </td>
                 </tr>
                 {% endfor %}
@@ -78,7 +94,7 @@
         </table>
 
         {% if not flights %}
-        <p class="text-muted text-center">No se encontraron vuelos con los filtros seleccionados.</p>
+        <p class="text-muted text-center">🚫 No se encontraron vuelos con los filtros seleccionados.</p>
         {% endif %}
     </div>
 </body>

@@ -32,15 +32,14 @@ class FlightDetailView(generics.RetrieveAPIView):
 
 
 # 🔹 Página HTML para listar vuelos con búsqueda
+# 🔹 Permite ver los vuelos sin estar autenticado
 def flights_list(request):
     """Renderiza la lista de vuelos con filtros"""
     origin = request.GET.get("origin", "")
     destination = request.GET.get("destination", "")
     date = request.GET.get("date", "")
 
-    # Obtener todas las ciudades para desplegar en los selects
     cities = City.objects.all()
-
     flights = Flight.objects.all()
 
     if origin:

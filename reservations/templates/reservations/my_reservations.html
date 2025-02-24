@@ -54,39 +54,35 @@
 
     <!-- JavaScript mejorado para cancelar reservas sin errores -->
     <script>
-      function cancelReservation(reservationId) {
-        let csrfToken = "{{ csrf_token }}"; // CSRF Token de Django
-
-        if (!confirm("¿Estás seguro de que deseas cancelar esta reserva?")) {
-          return;
+        function cancelReservation(reservationId) {
+            let csrfToken = "{{ csrf_token }}"; 
+        
+            if (!confirm("¿Estás seguro de que deseas cancelar esta reserva?")) {
+                return;
+            }
+        
+            fetch(`/reservations/cancel/${reservationId}/`, {  // 🔥 Cambié la URL aquí
+                method: "DELETE",
+                headers: {
+                    "X-CSRFToken": csrfToken,
+                    "Content-Type": "application/json",
+                },
+            })
+            .then((response) => {
+                if (!response.ok) {
+                    throw new Error("Error en la cancelación: " + response.status);
+                }
+                return response.json();
+            })
+            .then((data) => {
+                alert("Reserva cancelada correctamente.");
+                location.reload();
+            })
+            .catch((error) => {
+                alert("Error al cancelar la reserva: " + error.message);
+            });
         }
-
-        fetch(`/reservations/api/cancel/${reservationId}/`, {
-          method: "DELETE",
-          headers: {
-            "X-CSRFToken": csrfToken,
-            "Content-Type": "application/json",
-          },
-        })
-          .then((response) => {
-            if (!response.ok) {
-              throw new Error("Error en la cancelación: " + response.status);
-            }
-            return response.json();
-          })
-          .then((data) => {
-            if (data.message) {
-              alert("Reserva cancelada correctamente.");
-              let row = document.getElementById(`reservation-${reservationId}`);
-              if (row) row.remove(); // 🔄 Elimina la fila sin recargar la página
-            } else {
-              throw new Error(data.error || "Error desconocido");
-            }
-          })
-          .catch((error) => {
-            alert("Error al cancelar la reserva: " + error.message);
-          });
-      }
+        
     </script>
   </body>
 </html>

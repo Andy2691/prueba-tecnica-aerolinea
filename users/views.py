@@ -1,9 +1,8 @@
 from django.shortcuts import render, redirect
-from django.contrib.auth import get_user_model, authenticate, login
+from django.contrib.auth import get_user_model, authenticate, login, logout
 from django.http import JsonResponse
 from django.contrib import messages
 from django.views.decorators.csrf import csrf_exempt
-from django.contrib.auth.decorators import login_required
 from rest_framework.decorators import (
     api_view,
     authentication_classes,
@@ -11,6 +10,7 @@ from rest_framework.decorators import (
 )
 from rest_framework.authentication import SessionAuthentication
 from rest_framework.permissions import IsAuthenticated
+from rest_framework.response import Response
 from rest_framework import generics
 from .serializers import UserSerializer
 
@@ -34,11 +34,11 @@ def register(request):
 
         if User.objects.filter(username=username).exists():
             messages.error(request, "El nombre de usuario ya está en uso.")
-            return redirect("register_form")
+            return redirect("register")
 
         if User.objects.filter(email=email).exists():
             messages.error(request, "El correo electrónico ya está registrado.")
-            return redirect("register_form")
+            return redirect("register")
 
         user = User.objects.create_user(
             username=username,
@@ -50,7 +50,7 @@ def register(request):
         user.save()
 
         messages.success(request, "¡Registro exitoso! Ahora puedes iniciar sesión.")
-        return redirect("login_form")
+        return redirect("user_login")  # 🔥 Redirige correctamente al login
 
     return render(request, "users/register.html")
 
@@ -60,20 +60,28 @@ def login_view(request):
     return render(request, "users/login.html")
 
 
-# 🔹 API REST para autenticación con sesiones
-@csrf_exempt
-@api_view(["POST"])
-@authentication_classes([SessionAuthentication])
+# 🔹 API para iniciar sesión (corrige la autenticación)
+@csrf_exempt  # Si usas Django REST Framework, prueba quitándolo si no es necesario
 def user_login(request):
-    username = request.POST.get("username")
-    password = request.POST.get("password")
-    user = authenticate(request, username=username, password=password)
+    if request.method == "POST":
+        username = request.POST.get("username")
+        password = request.POST.get("password")
 
-    if user is not None:
-        login(request, user)  # 🔥 Iniciar sesión con SessionAuthentication
-        return JsonResponse({"message": "Login exitoso"})
-    else:
-        return JsonResponse({"error": "Credenciales inválidas"}, status=400)
+        print(
+            f"Intentando iniciar sesión con: {username} - {password}"
+        )  # 🔍 Depuración
+
+        user = authenticate(request, username=username, password=password)
+
+        if user is not None:
+            login(request, user)
+            messages.success(request, "Inicio de sesión exitoso.")
+            return redirect("reservations_home")  # 🔥 Redirige a la página de reservas
+        else:
+            messages.error(request, "Credenciales inválidas. Intenta de nuevo.")
+            return redirect("user_login")  # 🔥 Redirige al login si falla
+
+    return render(request, "users/login.html")  # 🔥 Asegura que el login se renderiza
 
 
 # 🔹 API REST para obtener información del usuario autenticado
@@ -93,11 +101,9 @@ def user_profile(request):
     )
 
 
-# 🔹 API para cerrar sesión (logout)
+# 🔹 API para cerrar sesión (logout corregido)
 @api_view(["POST"])
-@authentication_classes([SessionAuthentication])
-@permission_classes([IsAuthenticated])
-def user_logout(request):
-    """Cerrar sesión en Django"""
-    request.session.flush()  # 🔥 Elimina la sesión del usuario
-    return JsonResponse({"message": "Sesión cerrada correctamente"}, status=200)
+def user_logout(request):  # 🔥 Cambio el nombre para que coincida con las URLs
+    logout(request)
+    messages.success(request, "Sesión cerrada correctamente.")
+    return redirect("user_login")  # 🔥 Redirige a la página de login
